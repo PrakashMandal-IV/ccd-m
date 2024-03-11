@@ -7,3 +7,8 @@ exports.userLogin = async (req, res) => {
         return res.error("Error occurred while creating user", error.message);
     }
 }
+
+
+function createUser(userBody){
+    
+}
