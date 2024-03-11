@@ -6,7 +6,7 @@ const init = (app) => {
     app.use(cors());
     app.use(bodyParser.json({ limit: "50mb" }));
     app.use(bodyParser.raw({ type: 'multipart/form-data', limit: '100mb' }));
-    app.use(bodyParser.urlencoded({  extended: true }));
+    app.use(bodyParser.urlencoded({ extended: true }));
 
 
     app.use('/api', apiRoutes)
