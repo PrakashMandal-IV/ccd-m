@@ -2,7 +2,7 @@
   "name": "message_api",
   "version": "1.0.0",
   "description": "Message service",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "start":"node index.js"
   },
