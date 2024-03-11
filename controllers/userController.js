@@ -39,3 +39,32 @@ async function createUser(user) {
     return result
 }
 
+exports.updateUserData = async (req, res) => {
+    try {
+        const { email, name, logo } = req.body
+        const userId = req.userId;
+        const exsits = await UserModel.exists({
+            _id: { $ne: userId },
+            email: email
+        })
+        if (!exsits) {
+            await UserModel.findOneAndUpdate(
+                { _id: userId }, // Filter by userId
+                {
+                    $set: {
+                        email: email,
+                        logo: logo,
+                        name: name
+                    }
+                }// Update the email field
+            )
+        }
+        return res.success("Success", true);
+    } catch (error) {
+        return res.error("Error occurred while creating user", error.message);
+    }
+}
+
+
+
+
