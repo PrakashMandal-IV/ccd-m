@@ -13,7 +13,7 @@ exports.userLogin = async (req, res) => {
         return res.success("Success", result);
 
     } catch (error) {
-        return res.error("Error occurred while creating user", error.message);
+        return res.error("Error occurred while updating user", error.message);
     }
 }
 const GenerateUserToken = async (user) => {
@@ -60,6 +60,29 @@ exports.updateUserData = async (req, res) => {
             )
         }
         return res.success("Success", true);
+    } catch (error) {
+        return res.error("Error occurred while creating user", error.message);
+    }
+}
+
+
+exports.changePassword = async (req, res) => {
+    try {
+        const { password } = req.body
+        const userId = req.userId;
+        if (password) {
+            await UserModel.findOneAndUpdate(
+                { _id: userId }, // Filter by userId
+                {
+                    $set: {
+                        password: password
+                    }
+                }// Update the email field
+            )
+            return res.success("Success", true);
+        } else {
+            return res.error("Password cannot be empty");
+        }
     } catch (error) {
         return res.error("Error occurred while creating user", error.message);
     }
