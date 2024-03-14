@@ -25,7 +25,11 @@ const registerSocketServer = (server) => {
     // };
 
     io.on("connection", (socket) => {
-        newConnectionHandler(socket, io);
+        const userDetail = socket.user;
+        serverStore.addNewConnectedUser({
+            socketId: socket.id,
+            userId: userDetail.userId,
+          });
         socket.on("disconnect", () => {
             serverStore.removeConnectedUser(socket.id);
         });

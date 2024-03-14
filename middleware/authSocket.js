@@ -1,5 +1,4 @@
 const jwt = require("jsonwebtoken");
-const authSocket = require("./middleware/authSocket");
 
 const verifyTokenSocket = (socket, next) => {
   const token = socket.handshake.auth.token;
