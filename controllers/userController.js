@@ -1,5 +1,6 @@
 const UserModel = require("../models/UserModel");
 const jwt = require("jsonwebtoken");
+
 exports.userLogin = async (req, res) => {
     try {
 
@@ -16,6 +17,7 @@ exports.userLogin = async (req, res) => {
         return res.error("Error occurred while updating user", error.message);
     }
 }
+
 const GenerateUserToken = async (user) => {
     try {
         user.userId = user._id;
@@ -64,7 +66,6 @@ exports.updateUserData = async (req, res) => {
         return res.error("Error occurred while creating user", error.message);
     }
 }
-
 
 exports.changePassword = async (req, res) => {
     try {
