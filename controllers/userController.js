@@ -1,5 +1,6 @@
 const UserModel = require("../models/UserModel");
 const jwt = require("jsonwebtoken");
+
 exports.userLogin = async (req, res) => {
     try {
 
@@ -13,9 +14,10 @@ exports.userLogin = async (req, res) => {
         return res.success("Success", result);
 
     } catch (error) {
-        return res.error("Error occurred while creating user", error.message);
+        return res.error("Error occurred while updating user", error.message);
     }
 }
+
 const GenerateUserToken = async (user) => {
     try {
         user.userId = user._id;
@@ -38,4 +40,55 @@ async function createUser(user) {
     const result = await userdata.save()
     return result
 }
+
+exports.updateUserData = async (req, res) => {
+    try {
+        const { email, name, logo } = req.body
+        const userId = req.userId;
+        const exsits = await UserModel.exists({
+            _id: { $ne: userId },
+            email: email
+        })
+        if (!exsits) {
+            await UserModel.findOneAndUpdate(
+                { _id: userId }, // Filter by userId
+                {
+                    $set: {
+                        email: email,
+                        logo: logo,
+                        name: name
+                    }
+                }// Update the email field
+            )
+        }
+        return res.success("Success", true);
+    } catch (error) {
+        return res.error("Error occurred while creating user", error.message);
+    }
+}
+
+exports.changePassword = async (req, res) => {
+    try {
+        const { password } = req.body
+        const userId = req.userId;
+        if (password) {
+            await UserModel.findOneAndUpdate(
+                { _id: userId }, // Filter by userId
+                {
+                    $set: {
+                        password: password
+                    }
+                }// Update the email field
+            )
+            return res.success("Success", true);
+        } else {
+            return res.error("Password cannot be empty");
+        }
+    } catch (error) {
+        return res.error("Error occurred while creating user", error.message);
+    }
+}
+
+
+
 

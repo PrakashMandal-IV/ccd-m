@@ -1,7 +1,7 @@
 const express = require("express");
 const { init } = require("./middleware/middleware");
 const { databaseConnection } = require("./middleware/DBConnection");
-
+const http = require("http");
 require("dotenv").config();
 
 
@@ -10,5 +10,9 @@ const app = express();
 const PORT = 8000;
 databaseConnection();
 init(app);
+const server = http.createServer(app);
 
-app.listen(PORT, () => console.log('Listening on port :' + PORT))
+//socketServer.registerSocketServer(server);
+
+
+server.listen(PORT, () => console.log('Listening on port :' + PORT))
