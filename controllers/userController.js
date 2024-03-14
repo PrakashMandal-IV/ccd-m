@@ -89,6 +89,15 @@ exports.changePassword = async (req, res) => {
     }
 }
 
+exports.getUserIdByRefId = async (refId) => {
+    try {
+        const ID = await UserModel.findOne({ refId: refId }).select('_id')
+        return ID._id
+    } catch (error) {
+        return res.error("Error occurred while creating user", error.message);
+    }
+}
+
 
 
 
