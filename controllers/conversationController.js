@@ -27,15 +27,15 @@ exports.addMessageInConversation = async (userID, recieverRefId, data) => {
                 attachments: [],
                 type: data.type
             })
-            const messageResponse =await messagePayload.save()
+            const messageResponse = await messagePayload.save()
 
-            const message  =await MessagesModal.findById(messageResponse._id)
-            .populate('author', 'name refId').exec()
+            const message = await MessagesModal.findById(messageResponse._id)
+                .populate('author', 'name refId').exec()
 
             var mdata = BuildMessegeObject(message)
             return {
-                participents:[userID,recieverId],
-                data:mdata
+                participents: [userID, recieverId],
+                data: mdata
             }
         }
     } catch (error) {
@@ -55,17 +55,49 @@ async function createDirectMessageConversation(userID, recieverId) {
     return conversation
 }
 
-
-
-function BuildMessegeObject(Message){
-   return (
-    {
-        message: Message.message,
-        userName:Message.author.name,
-        refId:Message.author.refId,
-        seen:Message.seen,
-        seenTime:Message.seenTime||'',
-        attachments:Message.attachments
+exports.getDirectChatHistory = async (req, res) => {
+    try {
+        const participentID = await getUserIdByRefId(req.params.refId)
+        const conversation = await ConversationModal.findOne({
+            type: "DIRECT_CHAT",
+            participants: {
+                $all: [
+                    GetObjectID(req.userId),
+                    GetObjectID(participentID)
+                ],
+            },
+        });
+        const response = []
+        if (conversation) {
+            const messageList = await MessagesModal.find({ conversationId: conversation._id })
+                .populate('author', 'name refId').exec()
+            messageList.forEach(item => {
+                response.push(BuildMessegeObject(item))
+            })
+        }
+        return res.success("Success", { data: response });
+    } catch (error) {
+        return res.error("Error occurred while creating user", error.message);
     }
-   )
+}
+
+
+
+
+
+
+
+
+
+function BuildMessegeObject(Message) {
+    return (
+        {
+            message: Message.message,
+            userName: Message.author.name,
+            refId: Message.author.refId,
+            seen: Message.seen,
+            seenTime: Message.seenTime || '',
+            attachments: Message.attachments
+        }
+    )
 }
