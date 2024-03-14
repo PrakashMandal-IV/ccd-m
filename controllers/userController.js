@@ -1,8 +1,6 @@
 
 const UserModel = require("../models/UserModel");
 const jwt = require("jsonwebtoken");
-const ConversationModal = require("../models/ConversationModal");
-const { ObjectId } = require("mongodb");
 
 exports.userLogin = async (req, res) => {
     try {
@@ -92,7 +90,7 @@ exports.changePassword = async (req, res) => {
     }
 }
 
-const getUserIdByRefId = async (refId) => {
+exports.getUserIdByRefId = async (refId) => {
     try {
         const ID = await UserModel.findOne({ refId: refId }).select('_id')
         return ID._id.toString()
@@ -102,46 +100,5 @@ const getUserIdByRefId = async (refId) => {
 }
 
 
-exports.addChatInConversation = async (userID, recieverRefId) => {
-    try {
-        var recieverId = await getUserIdByRefId(recieverRefId)
-        if (userID && recieverId) {
-            var ConversationID = await ConversationModal.findOne({
-                type: "DIRECT_CHAT",
-                participants: {
-                    $all: [
-                        GetObjectID(userID),
-                        GetObjectID(recieverId)
-                    ],
-                },
-            });
-
-            if (!ConversationID) {  // if there is no conversation then crate one
-                ConversationID = await createDirectMessageConversation(userID, recieverId)
-                
-            }
-            // add message to the conversation
-
-        
-        }
-    } catch (error) {
-        console.log(error)
-    }
-}
-
-async function createDirectMessageConversation(userID, recieverId) {
-    const payload = new ConversationModal({
-        type: "DIRECT_CHAT",
-        participants: [
-            GetObjectID(userID),
-            GetObjectID(recieverId)
-        ]
-    })
-    const conversation = await payload.save()
-    return conversation
-}
-function GetObjectID(id) {
-    return new ObjectId(id);
-}
 
 

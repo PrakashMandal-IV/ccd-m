@@ -1,4 +1,5 @@
-const { getUserIdByRefId, addChatInConversation } = require("../controllers/userController");
+
+const { addMessageInConversation } = require('../controllers/conversationController');
 const serverStore = require('../serverStore')
 const chatSocket = (socket, io) => {
     try {
@@ -7,9 +8,9 @@ const chatSocket = (socket, io) => {
         //     await userChatList(data.userId, socket);
         // });
         socket.on("direct-message", async (data) => {  // recieve a message from user
-            
-         var message =  await addChatInConversation(userId,data.reciever)
-          //  emitMessageToUser([userId, id], data, io)  // send message to the sender and the reciever
+
+            var response = await addMessageInConversation(userId, data.reciever,data)
+              emitMessageToUser(response.participents, response.data, io)  // send message to the sender and the reciever
         });
 
     } catch (error) {
