@@ -1,7 +1,7 @@
 const serverStore = require("./serverStore");
 const authSocket = require("./middleware/authSocket");
 
-
+const UserChatSocket = require("./socketHandler/UserChatSocket");
 
 let io;
 
@@ -29,7 +29,9 @@ const registerSocketServer = (server) => {
         serverStore.addNewConnectedUser({
             socketId: socket.id,
             userId: userDetail.userId,
-          });
+        });
+        // init chat socket
+        UserChatSocket.chatSocket(socket,io)
         socket.on("disconnect", () => {
             serverStore.removeConnectedUser(socket.id);
         });

@@ -30,6 +30,16 @@ const addNewConnectedUser = ({ socketId, userId }) => {
   };
 
 
+  // fetch connection if for active users
+  const getActiveConnections = (userIds) => {
+    const activeConnections = []
+    connectedUsers.forEach(function (value, key) {
+      if (userIds.includes(value.userId)) {
+        activeConnections.push(key); // key is socketId
+      }
+    });
+    return activeConnections;
+  };
 
 
   
@@ -37,6 +47,7 @@ module.exports = {
     addNewConnectedUser,
     setSocketServerInstance,
     getSocketServerInstance,
-    removeConnectedUser
+    removeConnectedUser,
+    getActiveConnections
   };
   

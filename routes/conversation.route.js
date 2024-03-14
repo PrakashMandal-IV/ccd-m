@@ -1,0 +1,10 @@
+const express = require("express");
+
+const router = express.Router()
+const auth = require("../middleware/auth");
+
+const conversationController = require('../controllers/conversationController')
+
+router.get("/direct/getHistory/:refId",auth, conversationController.getDirectChatHistory)
+
+module.exports = router;

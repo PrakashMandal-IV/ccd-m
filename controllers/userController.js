@@ -1,3 +1,4 @@
+
 const UserModel = require("../models/UserModel");
 const jwt = require("jsonwebtoken");
 
@@ -84,6 +85,15 @@ exports.changePassword = async (req, res) => {
         } else {
             return res.error("Password cannot be empty");
         }
+    } catch (error) {
+        return res.error("Error occurred while creating user", error.message);
+    }
+}
+
+exports.getUserIdByRefId = async (refId) => {
+    try {
+        const ID = await UserModel.findOne({ refId: refId }).select('_id')
+        return ID._id.toString()
     } catch (error) {
         return res.error("Error occurred while creating user", error.message);
     }
