@@ -18,11 +18,7 @@ const channelSocket = (socket, io) => {
             }
 
         });
-
-        socket.on("direct-inbox", async () => {  // recieve a message from user
-            var response = await getDirectChatInbox(userId)
-        });
-
+        
     } catch (error) {
         console.log("Error occurred in socket", error.message);
     }
