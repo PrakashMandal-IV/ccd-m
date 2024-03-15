@@ -3,6 +3,7 @@ const MessagesModal = require("../models/MessagesModal");
 const { GetObjectID } = require("../utils/utilities");
 const { getUserIdByRefId } = require("./userController");
 const Collections = require("../utils/Collections");
+const UserModel = require("../models/UserModel");
 exports.addMessageInConversation = async (userID, recieverRefId, data) => {
     try {
         var recieverId = await getUserIdByRefId(recieverRefId)
@@ -17,6 +18,24 @@ exports.addMessageInConversation = async (userID, recieverRefId, data) => {
                 },
             });
             if (!ConversationID) {  // if there is no conversation then crate one
+                const user= await UserModel.findById(userID)
+
+                let friends = user.friends;
+                friends.push(recieverId);
+
+                const recieverUser= await UserModel.findById(recieverId)
+                let participantFriends = recieverUser.friends;
+                participantFriends.push(userID);
+                await UserModel.findByIdAndUpdate(
+                    userID,
+                  { $set: { friends } },
+                  { new: true }
+                );
+                await UserModel.findByIdAndUpdate(
+                    recieverId,
+                  { $set: { friends: participantFriends } },
+                  { new: true }
+                );
                 ConversationID = await createDirectMessageConversation(userID, recieverId)
             }
             // add message to the conversation
@@ -83,6 +102,10 @@ exports.getDirectChatHistory = async (req, res) => {
 
 exports.getDirectChatInbox = async (userID) => {
     try {
+        const user= await UserModel.findById(userID)
+
+        let friends = user.friends;
+        
         const conversation = await ConversationModal.aggregate([
             {
                 $match: {
