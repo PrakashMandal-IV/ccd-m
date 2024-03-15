@@ -14,6 +14,10 @@ const ConversationSchema = new mongoose.Schema({
         type: String,
         trim: true,
     },
+    groupId: {
+        type: Schema.Types.ObjectId,
+        ref: Collections.GROUPS_MODEL
+    }
 })
 ConversationSchema.method = {}
 

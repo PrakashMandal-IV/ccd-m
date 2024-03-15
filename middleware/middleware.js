@@ -1,6 +1,6 @@
 const cors = require("cors");
 const { Response } = require("../models/response.model");
-const apiRoutes = require('../routes')
+const apiRoutes = require('../app.Routes')
 const bodyParser = require("body-parser");
 const init = (app) => {
     app.use(cors());

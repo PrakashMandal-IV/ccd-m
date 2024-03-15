@@ -21,11 +21,14 @@ exports.addMessageInConversation = async (userID, recieverRefId, data) => {
                 const user= await UserModel.findById(userID)
 
                 let friends = user.friends;
-                friends.push(recieverId);
-
+                if(!friends.includes(recieverId)){
+                    friends.push(recieverId);
+                }
                 const recieverUser= await UserModel.findById(recieverId)
                 let participantFriends = recieverUser.friends;
-                participantFriends.push(userID);
+                if(!participantFriends.includes(userID)){
+                    participantFriends.push(userID);
+                }
                 await UserModel.findByIdAndUpdate(
                     userID,
                   { $set: { friends } },

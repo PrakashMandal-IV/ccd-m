@@ -4,8 +4,16 @@ const Collections = require("../utils/Collections");
 
 const GroupSchema = new mongoose.Schema({
     groupName: {
-        typw: String,
+        type: String,
         require: true
+    },
+    refId: {
+        type: String,
+        trim: true,
+    },
+    logo: {
+        type: String,
+        trim: true,
     },
     members: [
         {
@@ -23,10 +31,10 @@ const GroupSchema = new mongoose.Schema({
         ref: Collections.USER_MODEL,
         require: true
     },
-    type: {
+    type: {  // just in case if user want to categorise groups
         type: String,
-        trim: true, // just in case if user want to categorise groups
-        default:''
+        trim: true,
+        default: ''
     },
 })
 GroupSchema.method = {}
