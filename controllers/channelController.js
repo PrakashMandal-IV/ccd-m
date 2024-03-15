@@ -1,4 +1,5 @@
 const ChannelModel = require("../models/ChannelModel");
+const UserModel = require("../models/UserModel");
 const { GetObjectID } = require("../utils/utilities");
 
 
@@ -15,5 +16,118 @@ exports.createChannel = async (req, res) => {
         return res.success("Success", true);
     } catch (error) {
         return res.error("Error occurred while creating user", error.message);
+    }
+}
+
+exports.getChannels = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const payload = await ChannelModel.find({ createdBy: GetObjectID(userId) })
+            .populate('members', 'name refId logo') // Populate the members field with username and email
+            .select('channelName members');
+        var response = StructureChannelList(payload)
+        return res.success("Success", response);
+    } catch (error) {
+        return res.error("Error occurred while creating user", error.message);
+    }
+}
+function StructureChannelList(channels) {
+    var list = []
+    channels.forEach(element => {
+        list.push({
+            id: element._id?.toString(),
+            channelName: element.channelName,
+            members: element.members.map(x => {
+                return ({
+                    name: x.name,
+                    refId: x.refId,
+                    logo: x.logo
+                })
+            })
+        })
+    });
+    return list;
+}
+
+
+exports.addMemberInChannel = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const { channelId, memberRefId } = req.body;
+        const channel = await ChannelModel.findById(channelId)
+
+        const MemberData = await UserModel.findOne({ refId: memberRefId })
+        if (channel && MemberData) {
+            if (channel.createdBy._id?.toString() !== userId) {  // if channel is not created by this user
+                return res.error("Not authorized to make changes for this channel", error.message);
+            }
+            const members = channel.members
+            var exists = false
+            members.forEach(x => {
+                if (x._id?.toString() === MemberData._id.toString()) {
+                    exists=true
+                }
+            })
+            if (!exists) {
+                members.push(MemberData._id)
+            }else{
+                return res.success("Member already exists", true);
+            }
+            await ChannelModel.findByIdAndUpdate(
+                channelId,
+                { $set: { members: members } },
+                { new: true }
+            );
+            return res.success("Success", true);
+        } else {
+            if (!channel) {
+                return res.error("Channel not found", error.message);
+            } else {
+                return res.error("User not found", error.message);
+            }
+        }
+    } catch (error) {
+        return res.error("Error occurred while adding member", error.message);
+    }
+}
+
+exports.removeMemberInChannel = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const { channelId, memberRefId } = req.body;
+        const channel = await ChannelModel.findById(channelId)
+
+        const MemberData = await UserModel.findOne({ refId: memberRefId })
+        if (channel && MemberData) {
+            if (channel.createdBy._id?.toString() !== userId) {  // if channel is not created by this user
+                return res.error("Not authorized to make changes for this channel", error.message);
+            }
+            var members = channel.members
+            var exists = false
+            members.forEach(x => {
+                if (x._id?.toString() === MemberData._id.toString()) {
+                    exists=true
+                }
+            })
+            if (exists) {
+                members=   members.filter(x=>x._id?.toString()!==MemberData._id.toString())
+            }else{
+                return res.success("Member already exists", true);
+            }
+            await ChannelModel.findByIdAndUpdate(
+                channelId,
+                { $set: { members: members } },
+                { new: true }
+            );
+            return res.success("Success", true);
+        } else {
+            if (!channel) {
+                return res.error("Channel not found", error.message);
+            } else {
+                return res.error("User not found", error.message);
+            }
+        }
+    } catch (error) {
+        return res.error("Error occurred while adding member", error.message);
     }
 }
