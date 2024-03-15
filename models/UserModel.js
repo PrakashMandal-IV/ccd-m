@@ -26,6 +26,11 @@ const UserSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    friends: [{
+        trim: true,
+        ref: Collections.USER_MODEL,
+        type: mongoose.Types.ObjectId,
+    }],
     createdOn: {
         type: Date,
         default: Date.now

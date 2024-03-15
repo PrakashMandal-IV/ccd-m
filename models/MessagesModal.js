@@ -55,7 +55,11 @@ const MessegesSchema = new mongoose.Schema({
         type: {
             type: String
         }
-    }]
+    }],
+    sendTime:{
+        type:Date,
+        default:Date.now
+    }
 })
 MessegesSchema.method = {}
 

@@ -2,7 +2,8 @@ const ConversationModal = require("../models/ConversationModal");
 const MessagesModal = require("../models/MessagesModal");
 const { GetObjectID } = require("../utils/utilities");
 const { getUserIdByRefId } = require("./userController");
-
+const Collections = require("../utils/Collections");
+const UserModel = require("../models/UserModel");
 exports.addMessageInConversation = async (userID, recieverRefId, data) => {
     try {
         var recieverId = await getUserIdByRefId(recieverRefId)
@@ -17,6 +18,24 @@ exports.addMessageInConversation = async (userID, recieverRefId, data) => {
                 },
             });
             if (!ConversationID) {  // if there is no conversation then crate one
+                const user= await UserModel.findById(userID)
+
+                let friends = user.friends;
+                friends.push(recieverId);
+
+                const recieverUser= await UserModel.findById(recieverId)
+                let participantFriends = recieverUser.friends;
+                participantFriends.push(userID);
+                await UserModel.findByIdAndUpdate(
+                    userID,
+                  { $set: { friends } },
+                  { new: true }
+                );
+                await UserModel.findByIdAndUpdate(
+                    recieverId,
+                  { $set: { friends: participantFriends } },
+                  { new: true }
+                );
                 ConversationID = await createDirectMessageConversation(userID, recieverId)
             }
             // add message to the conversation
@@ -81,6 +100,78 @@ exports.getDirectChatHistory = async (req, res) => {
     }
 }
 
+exports.getDirectChatInbox = async (userID) => {
+    try {
+        const user= await UserModel.findById(userID)
+
+        let friends = user.friends;
+        
+        const conversation = await ConversationModal.aggregate([
+            {
+                $match: {
+                    type: "DIRECT_CHAT",
+                    participants: {
+                        $all: [GetObjectID(userID)],
+                    },
+                },
+            },
+            {
+                $lookup: {
+                    from: 'messages', // Replace with your actual collection name for messages
+                    localField: "_id",
+                    foreignField: "conversationId",
+                    as: "messages",
+                },
+            },
+            {
+                $unwind: "$messages",
+            },
+            {
+                $sort: {
+                    "messages.sendTime": -1,
+                },
+            },
+            {
+                '$limit': 1
+            },
+            {
+                $group: {
+                    _id: "$_id",
+                    conversation: { $first: "$$ROOT" },
+                    lastMessage: { $first: "$messages" },
+                },
+            },
+            {
+                $lookup: {
+                    from: 'user', // Replace with your actual collection name for users
+                    localField: "lastMessage.author",
+                    foreignField: "_id",
+                    as: "lastMessage.author",
+                },
+            },
+            {
+                $unwind: "$lastMessage.author",
+            },
+            {
+                $project: {
+                    _id: "$conversation._id",
+                    type: "$conversation.type",
+                    lastMessage: {
+                        message: "$lastMessage.message",
+                        sendTime: "$lastMessage.sendTime",
+                        author: {
+                            refId: "$lastMessage.author.refId",
+                            displayName: "$lastMessage.author.name",
+                        },
+                    },
+                },
+            },
+        ]);
+        console.log(conversation.length)
+    } catch (error) {
+        console.log(error)
+    }
+}
 
 
 
@@ -92,12 +183,14 @@ exports.getDirectChatHistory = async (req, res) => {
 function BuildMessegeObject(Message) {
     return (
         {
+            id: Message._id.toString(),
             message: Message.message,
             userName: Message.author.name,
             refId: Message.author.refId,
             seen: Message.seen,
             seenTime: Message.seenTime || '',
-            attachments: Message.attachments
+            attachments: Message.attachments,
+            sentAt: Message.sendTime
         }
     )
 }
