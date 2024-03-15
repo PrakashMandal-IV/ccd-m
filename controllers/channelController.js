@@ -15,7 +15,7 @@ exports.createChannel = async (req, res) => {
         await payload.save();
         return res.success("Success", true);
     } catch (error) {
-        return res.error("Error occurred while creating user", error.message);
+        return res.error("Error occurred while creating channel", error.message);
     }
 }
 
@@ -28,7 +28,7 @@ exports.getChannels = async (req, res) => {
         var response = StructureChannelList(payload)
         return res.success("Success", response);
     } catch (error) {
-        return res.error("Error occurred while creating user", error.message);
+        return res.error("Error occurred while fetching channel", error.message);
     }
 }
 function StructureChannelList(channels) {
@@ -58,7 +58,7 @@ exports.addMemberInChannel = async (req, res) => {
         const MemberData = await UserModel.findOne({ refId: memberRefId })
         if (channel && MemberData) {
             if (channel.createdBy._id?.toString() !== userId) {  // if channel is not created by this user
-                return res.error("Not authorized to make changes for this channel", error.message);
+                return res.error("Error","Not authorized to make changes for this channel");
             }
             const members = channel.members
             var exists = false
@@ -80,9 +80,9 @@ exports.addMemberInChannel = async (req, res) => {
             return res.success("Success", true);
         } else {
             if (!channel) {
-                return res.error("Channel not found", error.message);
+                return res.error("Error","Channel not found");
             } else {
-                return res.error("User not found", error.message);
+                return res.error("Error","User not found");
             }
         }
     } catch (error) {
@@ -99,7 +99,7 @@ exports.removeMemberInChannel = async (req, res) => {
         const MemberData = await UserModel.findOne({ refId: memberRefId })
         if (channel && MemberData) {
             if (channel.createdBy._id?.toString() !== userId) {  // if channel is not created by this user
-                return res.error("Not authorized to make changes for this channel", error.message);
+                return res.error("Error", "ot authorized to make changes for this channel");
             }
             var members = channel.members
             var exists = false
@@ -121,13 +121,13 @@ exports.removeMemberInChannel = async (req, res) => {
             return res.success("Success", true);
         } else {
             if (!channel) {
-                return res.error("Channel not found", error.message);
+                return res.error("Error", "Channel not found");
             } else {
-                return res.error("User not found", error.message);
+                return res.error("Error","User not found");
             }
         }
     } catch (error) {
-        return res.error("Error occurred while adding member", error.message);
+        return res.error("Error occurred while removing member", error.message);
     }
 }
 
@@ -150,5 +150,26 @@ exports.getMembersRefIdofChannel = async (userId, channelId) => {
         }
     } catch {
         return { status: false, data: 'something went wrong' }
+    }
+}
+
+exports.deleteChannel = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const channelId= req.params.id;
+        const channel = await ChannelModel.findById(channelId)
+        if(!channel){
+            return res.error("Error", "channel not found");
+        }
+        if (channel.createdBy._id?.toString() !== userId) {  // if channel is not created by this user
+            return res.error("Error", "Not authorized to make changes for this channel");
+        }else{
+            await ChannelModel.findByIdAndDelete(channelId);
+            return res.success("Success", true);
+        }
+      
+       
+    } catch (error) {
+        return res.error("Error occurred while deleting channel", error.message);
     }
 }
