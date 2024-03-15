@@ -13,7 +13,7 @@ const ConversationSchema = new mongoose.Schema({
     type: {
         type: String,
         trim: true,
-      },
+    },
 })
 ConversationSchema.method = {}
 
