@@ -1,3 +1,4 @@
+const _ = require("lodash");
 const ConversationModal = require("../models/ConversationModal");
 const MessagesModal = require("../models/MessagesModal");
 const { GetObjectID } = require("../utils/utilities");
@@ -105,77 +106,55 @@ exports.getDirectChatHistory = async (req, res) => {
 
 exports.getDirectChatInbox = async (userID) => {
     try {
-        const user= await UserModel.findById(userID)
-
-        let friends = user.friends;
-        
-        const conversation = await ConversationModal.aggregate([
+      const user = await UserModel.findById(userID);
+      let friends = user.friends.map((friend) => friend.toString()); // Convert ObjectIds to strings
+      
+      var conversations = await Promise.all(
+        friends.map(async (friendID) => {
+            const friend = await UserModel.findById(friendID).select('name logo refId')
+          const conversation = await ConversationModal.aggregate([
             {
-                $match: {
-                    type: "DIRECT_CHAT",
-                    participants: {
-                        $all: [GetObjectID(userID)],
-                    },
+              $match: {
+                type: "DIRECT_CHAT",
+                participants: {
+                  $all: [GetObjectID(userID), GetObjectID(friendID)],
                 },
+              },
             },
-            {
-                $lookup: {
-                    from: 'messages', // Replace with your actual collection name for messages
-                    localField: "_id",
-                    foreignField: "conversationId",
-                    as: "messages",
-                },
-            },
-            {
-                $unwind: "$messages",
-            },
-            {
-                $sort: {
-                    "messages.sendTime": -1,
-                },
-            },
-            {
-                '$limit': 1
-            },
-            {
-                $group: {
-                    _id: "$_id",
-                    conversation: { $first: "$$ROOT" },
-                    lastMessage: { $first: "$messages" },
-                },
-            },
-            {
-                $lookup: {
-                    from: 'user', // Replace with your actual collection name for users
-                    localField: "lastMessage.author",
-                    foreignField: "_id",
-                    as: "lastMessage.author",
-                },
-            },
-            {
-                $unwind: "$lastMessage.author",
-            },
-            {
-                $project: {
-                    _id: "$conversation._id",
-                    type: "$conversation.type",
-                    lastMessage: {
-                        message: "$lastMessage.message",
-                        sendTime: "$lastMessage.sendTime",
-                        author: {
-                            refId: "$lastMessage.author.refId",
-                            displayName: "$lastMessage.author.name",
-                        },
-                    },
-                },
-            },
-        ]);
-        console.log(conversation.length)
+          ]);
+          if (conversation && conversation.length > 0) {
+              const lastMessage = await MessagesModal.findOne({
+                conversationId: conversation[0]._id,
+              })
+                .sort({ sendTime: -1 })
+                .populate("author", "name refId logo")
+                .exec();
+    
+              if (lastMessage) {
+                const formattedData = {
+                  userName:friend.name,
+                  logo:friend.logo,
+                  refId:friend.refId,
+                  sendByName: lastMessage.author.name,
+                  sendByrefId: lastMessage.author.refId,
+                  lastMessage: lastMessage.message,
+                  lastMessageTime: lastMessage.sendTime,
+                  seen: lastMessage.seen,
+                  sendBylogo: lastMessage.author.logo
+                };
+                return formattedData;
+              }
+            }
+        })
+      );
+      conversations = _.map(
+        _.sortBy(conversations, o => Date.parse(o.lastMessageTime))
+      );
+      return conversations.reverse();
     } catch (error) {
-        console.log(error)
+      console.log(error);
     }
-}
-
+  };
 
 
 

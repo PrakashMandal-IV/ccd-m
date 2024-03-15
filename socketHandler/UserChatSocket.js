@@ -15,6 +15,7 @@ const chatSocket = (socket, io) => {
 
         socket.on("direct-inbox", async () => {  // recieve a message from user
             var response = await getDirectChatInbox(userId)
+            emitDirectInboxToUser([userId],response,io)
         });
 
     } catch (error) {
@@ -32,7 +33,7 @@ function emitMessageToUser(Users, message, io) {
 function emitDirectInboxToUser(Users, inbox, io) {
     const connectionId = serverStore.getActiveConnections(Users.map(x => x.toString()));
     connectionId.forEach(x => {
-        io.to(x).emit("receive-direct-inbox", inbox); // broadcast message to the selected users if they are active
+        io.to(x).emit("receive-direct-inboxlist", inbox); // broadcast message to the selected users if they are active
     })
 }
 module.exports = {
