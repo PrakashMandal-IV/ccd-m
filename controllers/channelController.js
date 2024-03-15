@@ -31,6 +31,7 @@ exports.getChannels = async (req, res) => {
         return res.error("Error occurred while fetching channel", error.message);
     }
 }
+
 function StructureChannelList(channels) {
     var list = []
     channels.forEach(element => {
