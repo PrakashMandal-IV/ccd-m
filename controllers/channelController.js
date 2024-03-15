@@ -49,7 +49,6 @@ function StructureChannelList(channels) {
     return list;
 }
 
-
 exports.addMemberInChannel = async (req, res) => {
     try {
         const userId = req.userId;
@@ -65,12 +64,12 @@ exports.addMemberInChannel = async (req, res) => {
             var exists = false
             members.forEach(x => {
                 if (x._id?.toString() === MemberData._id.toString()) {
-                    exists=true
+                    exists = true
                 }
             })
             if (!exists) {
                 members.push(MemberData._id)
-            }else{
+            } else {
                 return res.success("Member already exists", true);
             }
             await ChannelModel.findByIdAndUpdate(
@@ -106,12 +105,12 @@ exports.removeMemberInChannel = async (req, res) => {
             var exists = false
             members.forEach(x => {
                 if (x._id?.toString() === MemberData._id.toString()) {
-                    exists=true
+                    exists = true
                 }
             })
             if (exists) {
-                members=   members.filter(x=>x._id?.toString()!==MemberData._id.toString())
-            }else{
+                members = members.filter(x => x._id?.toString() !== MemberData._id.toString())
+            } else {
                 return res.success("Member already exists", true);
             }
             await ChannelModel.findByIdAndUpdate(
@@ -129,5 +128,27 @@ exports.removeMemberInChannel = async (req, res) => {
         }
     } catch (error) {
         return res.error("Error occurred while adding member", error.message);
+    }
+}
+
+
+exports.getMembersRefIdofChannel = async (userId, channelId) => {
+
+    try {
+        const channel = await ChannelModel.findById(channelId)
+        if (channel) {
+            if (channel.createdBy._id?.toString() !== userId) {  // if channel is not created by this user
+                return { status: false, data: 'unauthorize' }
+            }
+            var members = []
+          await Promise.all(channel.members.map(async (member) => {
+                let user = await UserModel.findById(member).select('refId')
+                members.push(user.refId)
+            }));
+
+           return {status:true,data:members};
+        }
+    } catch {
+        return { status: false, data: 'something went wrong' }
     }
 }
