@@ -9,20 +9,28 @@ const chatSocket = (socket, io) => {
         // });
         socket.on("direct-message", async (data) => {  // recieve a message from user
 
-            var response = await addMessageInConversation(userId, data.reciever,data)
-              emitMessageToUser(response.participents, response.data, io)  // send message to the sender and the reciever
+            var response = await addMessageInConversation(userId, data.reciever, data)
+            if(response){
+                emitMessageToUser(response.participents, response.data, io)  // send message to the sender and the reciever
+                await GetInboxList(response.participents,io)
+            }
+           
         });
 
         socket.on("direct-inbox", async () => {  // recieve a message from user
-            var response = await getDirectChatInbox(userId)
-            emitDirectInboxToUser([userId],response,io)
+            await GetInboxList([userId],io)
         });
 
     } catch (error) {
         console.log("Error occurred in socket", error.message);
     }
 };
-
+async function GetInboxList(userId,io) {
+   userId.forEach(async(userid)=>{
+    var response = await getDirectChatInbox(userid)
+    emitDirectInboxToUser([userid], response, io)
+   })
+}
 function emitMessageToUser(Users, message, io) {
     const connectionId = serverStore.getActiveConnections(Users.map(x => x.toString()));
     connectionId.forEach(x => {
