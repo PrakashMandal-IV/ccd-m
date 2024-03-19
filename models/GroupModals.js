@@ -17,9 +17,15 @@ const GroupSchema = new mongoose.Schema({
     },
     members: [
         {
-            type: Schema.Types.ObjectId,
-            ref: Collections.USER_MODEL,
-            require: true
+            userId: {
+                type: Schema.Types.ObjectId,
+                ref: Collections.USER_MODEL,
+                require: true
+            },
+            isAdmin: {
+                type: Boolean,
+                default: false
+            }
         },
     ],
     createdAt: {
