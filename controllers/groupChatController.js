@@ -195,7 +195,6 @@ exports.getMembersRefIdofGroup = async (userId, groupId) => {
 
 exports.sendGroupMessage = async (userId, data) => {
     try {
-        console.log("data", data);
         const group = await GroupModals.findOne({ refId: data.groupId });
         if (group) {
             var exists = false;
@@ -226,7 +225,7 @@ exports.sendGroupMessage = async (userId, data) => {
                 .populate("author", "name refId")
                 .exec();
 
-            var mdata = BuildMessegeObject(message);
+            var mdata = BuildMessegeObject(message,data.groupId);
             return {
                 participents: group.members.map((item) => item.userId._id),
                 data: mdata,
@@ -286,6 +285,7 @@ exports.getGroupChatInbox = async (userID) => {
                     if (lastMessage) {
                         const formattedData = {
                             groupName: groupDetails.groupName,
+                            participants:[],
                             type: groupDetails.type,
                             logo: groupDetails.logo,
                             refId: groupDetails.refId,
@@ -298,9 +298,25 @@ exports.getGroupChatInbox = async (userID) => {
                         };
                         return formattedData;
                     }
+                } else {
+                    const formattedData = {
+                        groupName: groupDetails.groupName,
+                        participants:[],
+                        type: groupDetails.type,
+                        logo: groupDetails.logo,
+                        refId: groupDetails.refId,
+                        sendByName: '',
+                        sendByrefId: '',
+                        lastMessage: '',
+                        lastMessageTime: '',
+                        seen: false,
+                        sendBylogo: '',
+                    };
+                    return formattedData;
                 }
             })
         );
+
         conversations = _.map(
             _.sortBy(conversations, (o) => Date.parse(o.lastMessageTime))
         );
@@ -309,3 +325,5 @@ exports.getGroupChatInbox = async (userID) => {
         console.log(error);
     }
 };
+
+

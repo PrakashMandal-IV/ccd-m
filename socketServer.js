@@ -3,6 +3,7 @@ const authSocket = require("./middleware/authSocket");
 
 const UserChatSocket = require("./socketHandler/UserChatSocket");
 const ChannelSocket = require("./socketHandler/channelSocket");
+const GroupSocket = require("./socketHandler/groupChatSocket");
 
 let io;
 
@@ -36,6 +37,9 @@ const registerSocketServer = (server) => {
 
         //init channel socket
         ChannelSocket.channelSocket(socket,io)
+
+        //init group socket
+        GroupSocket.groupSocket(socket,io)
         socket.on("disconnect", () => {
             serverStore.removeConnectedUser(socket.id);
         });
