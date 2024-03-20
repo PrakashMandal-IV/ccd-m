@@ -9,16 +9,16 @@ const channelSocket = (socket, io) => {
         //     await userChatList(data.userId, socket);
         // });
         socket.on("channel-broadcast-message", async (data) => {  // recieve a message from user
-            const memberResponse = await getMembersRefIdofChannel(userId, data.channelId)
+            const memberResponse = await getMembersRefIdofChannel(userId, data.channelId,data)
             if (memberResponse.status) {
                 await Promise.all(memberResponse.data.map(async (member) => {
-                    var response = await addMessageInConversation(userId, member, data)
-                     emitMessageToUser(response.participents.filter(x=>x!==userId), response.data, io)  // send message to the sender and the reciever
+                    var response = await addMessageInConversation(userId, member, data) 
+                    emitMessageToUser(response.participents.filter(x => x !== userId), response.data, io)  // send message to the sender and the reciever
                 }))
             }
 
         });
-        
+
     } catch (error) {
         console.log("Error occurred in socket", error.message);
     }

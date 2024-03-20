@@ -1,8 +1,7 @@
 const ChannelModel = require("../models/ChannelModel");
 const UserModel = require("../models/UserModel");
-const { GetObjectID } = require("../utils/utilities");
-
-
+const { GetObjectID, BuildMessegeObject } = require("../utils/utilities");
+const MessagesModal = require("../models/MessagesModal");
 exports.createChannel = async (req, res) => {
     try {
         const { channelName } = req.body
@@ -59,7 +58,7 @@ exports.addMemberInChannel = async (req, res) => {
         const MemberData = await UserModel.findOne({ refId: memberRefId })
         if (channel && MemberData) {
             if (channel.createdBy._id?.toString() !== userId) {  // if channel is not created by this user
-                return res.error("Error","Not authorized to make changes for this channel");
+                return res.error("Error", "Not authorized to make changes for this channel");
             }
             const members = channel.members
             var exists = false
@@ -81,9 +80,9 @@ exports.addMemberInChannel = async (req, res) => {
             return res.success("Success", true);
         } else {
             if (!channel) {
-                return res.error("Error","Channel not found");
+                return res.error("Error", "Channel not found");
             } else {
-                return res.error("Error","User not found");
+                return res.error("Error", "User not found");
             }
         }
     } catch (error) {
@@ -124,16 +123,28 @@ exports.removeMemberInChannel = async (req, res) => {
             if (!channel) {
                 return res.error("Error", "Channel not found");
             } else {
-                return res.error("Error","User not found");
+                return res.error("Error", "User not found");
             }
         }
     } catch (error) {
         return res.error("Error occurred while removing member", error.message);
     }
 }
+exports.getChannelMessages = async (req, res) => {
+    try {
+        const channelId = req.params.channelId;
+        const Messages = await MessagesModal.find({messageTypeName:"CHANNEL_TYPE",messageTypeID:GetObjectID(channelId)}).sort({sendTime:'ascending'}).populate('author', 'name refId').exec()
+        var messages = []
+        Messages.forEach(x=>{
+            messages.push(BuildMessegeObject(x))
+        })
+        return res.success("Success", messages);
+    } catch (error) {
+        return res.error("Error occurred while removing member", error.message);
+    }
+}
 
-
-exports.getMembersRefIdofChannel = async (userId, channelId) => {
+exports.getMembersRefIdofChannel = async (userId, channelId,data) => {
 
     try {
         const channel = await ChannelModel.findById(channelId)
@@ -142,14 +153,28 @@ exports.getMembersRefIdofChannel = async (userId, channelId) => {
                 return { status: false, data: 'unauthorize' }
             }
             var members = []
-          await Promise.all(channel.members.map(async (member) => {
+            await Promise.all(channel.members.map(async (member) => {
                 let user = await UserModel.findById(member).select('refId')
                 members.push(user.refId)
             }));
 
-           return {status:true,data:members};
+
+            // add message for the channel 
+            const messagePayload = new MessagesModal({
+                message: data.message,
+                author: GetObjectID(userId),
+                conversationId: null,
+                attachments: data?.attachments||[],
+                type: data.type,
+                messageTypeName:'CHANNEL_TYPE',
+                messageTypeID:channel._id
+              })
+              await messagePayload.save()
+
+            return { status: true, data: members };
         }
-    } catch {
+    } catch(error) {
+        console.log(error)
         return { status: false, data: 'something went wrong' }
     }
 }
@@ -157,20 +182,23 @@ exports.getMembersRefIdofChannel = async (userId, channelId) => {
 exports.deleteChannel = async (req, res) => {
     try {
         const userId = req.userId;
-        const channelId= req.params.id;
+        const channelId = req.params.id;
         const channel = await ChannelModel.findById(channelId)
-        if(!channel){
+        if (!channel) {
             return res.error("Error", "channel not found");
         }
         if (channel.createdBy._id?.toString() !== userId) {  // if channel is not created by this user
             return res.error("Error", "Not authorized to make changes for this channel");
-        }else{
+        } else {
             await ChannelModel.findByIdAndDelete(channelId);
             return res.success("Success", true);
         }
-      
-       
+
+
     } catch (error) {
         return res.error("Error occurred while deleting channel", error.message);
     }
 }
+
+
+

@@ -2,7 +2,7 @@ const ConversationModal = require("../models/ConversationModal");
 const GroupModals = require("../models/GroupModals");
 const MessagesModal = require("../models/MessagesModal");
 const UserModel = require("../models/UserModel");
-const { GetObjectID } = require("../utils/utilities");
+const { GetObjectID, BuildGroupChatMessegeObject } = require("../utils/utilities");
 const { getUserIdByRefId } = require("./userController");
 const _ = require("lodash");
 const Collections = require("../utils/Collections");
@@ -234,7 +234,7 @@ exports.sendGroupMessage = async (userId, data) => {
                 .populate("author", "name refId")
                 .exec();
 
-            var mdata = BuildMessegeObject(message, data.groupId);
+            var mdata = BuildGroupChatMessegeObject(message, data.groupId);
             return {
                 participents: group.members.map((item) => item.userId._id),
                 data: mdata,
@@ -254,19 +254,7 @@ async function createDirectMessageConversation(groupId) {
     return conversation;
 }
 
-function BuildMessegeObject(Message, groupId) {
-    return {
-        id: Message._id.toString(),
-        message: Message.message,
-        groupId: groupId,
-        userName: Message.author.name,
-        userId: Message.author.refId,
-        seen: Message.seen,
-        seenTime: Message.seenTime || "",
-        attachments: Message.attachments,
-        sentAt: Message.sendTime,
-    };
-}
+
 
 exports.getGroupChatInbox = async (userID) => {
     try {
@@ -355,7 +343,7 @@ exports.getGroupChatHistory = async (req, res) => {
                 .populate("author", "name refId")
                 .exec();
             messageList.forEach((item) => {
-                response.push(BuildMessegeObject(item));
+                response.push(BuildGroupChatMessegeObject(item));
             });
         }
         return res.success("Success", { data: response });

@@ -14,8 +14,7 @@ const MessegesSchema = new mongoose.Schema({
     },
     conversationId: {
         type: Schema.Types.ObjectId,
-        ref: Collections.CONVERSATION_MODEL,
-        required: true
+        ref: Collections.CONVERSATION_MODEL
     },
     seen: {
         type: Boolean,
@@ -25,8 +24,8 @@ const MessegesSchema = new mongoose.Schema({
     type: {
         type: String,
         trim: true,
-        default:'TEXT'
-      },
+        default: 'TEXT'
+    },
     seenTime: {
         type: Date,
         trim: true,
@@ -56,9 +55,18 @@ const MessegesSchema = new mongoose.Schema({
             type: String
         }
     }],
-    sendTime:{
-        type:Date,
-        default:Date.now
+    sendTime: {
+        type: Date,
+        default: Date.now
+    },
+    messageTypeName: {
+        type: String,
+        default: '',
+        trim: true
+    },
+    messageTypeID: {
+        type: Schema.Types.ObjectId,
+        default: null,
     }
 })
 MessegesSchema.method = {}

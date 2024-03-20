@@ -10,4 +10,5 @@ router.get("/getChannels",auth, channelController.getChannels)
 router.patch("/addMember",auth, channelController.addMemberInChannel)
 router.patch("/removeMember",auth, channelController.removeMemberInChannel)
 router.delete("/:id",auth, channelController.deleteChannel)
+router.get("/getChanneMessages/:channelId",auth, channelController.getChannelMessages)
 module.exports = router;
