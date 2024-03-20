@@ -1,4 +1,5 @@
 
+const TagsModel = require("../models/TagsModel");
 const UserModel = require("../models/UserModel");
 const jwt = require("jsonwebtoken");
 
@@ -31,35 +32,68 @@ const GenerateUserToken = async (user) => {
 };
 
 async function createUser(user) {
+    var Tags = []
+    if (user.tags) {
+
+        Tags = user.tags.split(',')
+        Tags = await UpdateTags(Tags)
+
+    }
     const userdata = new UserModel({
         name: user.name,
         email: user.email,
         refId: user.refId,
         logo: user?.logo || '',
-        password: user.password
-    })
-    const result = await userdata.save()
-    return result
+        password: user.password,
+        tags: Tags
+    }).save()
+
+    return userdata
+}
+
+async function UpdateTags(Tags) {
+    const tags = await Promise.all(Tags.map(async (tag) => {
+        if (!tag.startsWith('#')) {
+            tag = "#" + tag.replace(' ', '')
+        }
+        const exists = await TagsModel.findOne({ tagName: tag })
+        // if not exists
+        if (!exists) {
+            const tags = new TagsModel({
+                tagName: tag
+            })
+            await tags.save()
+        }
+        return tag
+    }))
+
+    return tags
 }
 
 exports.updateUserData = async (req, res) => {
     try {
-        const { email, name, logo } = req.body
+        const { email, name, logo, tags } = req.body
         const userId = req.userId;
         const exsits = await UserModel.exists({
             _id: { $ne: userId },
             email: email
         })
         if (!exsits) {
-            await UserModel.findOneAndUpdate(
-                { _id: userId }, // Filter by userId
+            var updateData = {
+                email: email,
+                logo: logo,
+                name: name
+            }
+            if (tags) {
+                var Tags = tags?.split(',')
+                Tags = await UpdateTags(Tags)
+                updateData.tags=Tags
+            }
+            await UserModel.findByIdAndUpdate(
+                { _id:userId }, 
                 {
-                    $set: {
-                        email: email,
-                        logo: logo,
-                        name: name
-                    }
-                }// Update the email field
+                    $set: updateData
+                }
             )
         }
         return res.success("Success", true);
@@ -73,8 +107,8 @@ exports.changePassword = async (req, res) => {
         const { password } = req.body
         const userId = req.userId;
         if (password) {
-            await UserModel.findOneAndUpdate(
-                { _id: userId }, // Filter by userId
+            await UserModel.findByIdAndUpdate(
+                { _id:userId}, // Filter by userId
                 {
                     $set: {
                         password: password

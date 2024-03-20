@@ -34,7 +34,14 @@ const UserSchema = new mongoose.Schema({
     createdOn: {
         type: Date,
         default: Date.now
-    }
+    },
+    tags: [
+        {
+            type: String,
+            trim: true,
+            default: ''
+        }
+    ]
 })
 UserSchema.method = {}
 
