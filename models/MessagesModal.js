@@ -68,7 +68,7 @@ const MessegesSchema = new mongoose.Schema({
     },
     messageTypeID: {
         type: Schema.Types.ObjectId,
-        default: '',
+        default: null,
     }
 })
 MessegesSchema.method = {}
