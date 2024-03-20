@@ -1,19 +1,17 @@
-
-const { getMembersRefIdofChannel } = require('../controllers/channelController');
 const { addMessageInConversation } = require('../controllers/directChatController');
-
+const { getMembersFortheTags } = require('../controllers/tagController');
 const UserChatSocket = require("./UserChatSocket");
-const channelSocket = (socket, io) => {
+const tagSocket = (socket, io) => {
     try {
         const { userId } = socket.user;
         // socket.on("friend-list", async (data) => {
         //     await userChatList(data.userId, socket);
         // });
-        socket.on("channel-broadcast-message", async (data) => {  // recieve a message from user
-            const memberResponse = await getMembersRefIdofChannel(userId, data.channelId,data)
+        socket.on("tag-broadcast-message", async (data) => {  // recieve a message from user
+            const memberResponse = await getMembersFortheTags(userId, data.tag, data)
             if (memberResponse.status) {
                 await Promise.all(memberResponse.data.map(async (member) => {
-                    var response = await addMessageInConversation(userId, member, data) 
+                    var response = await addMessageInConversation(userId, member, data)
                     UserChatSocket.emitDirectInboxToUser(response.participents.filter(x => x !== userId), response.data, io)  // send message to the sender and the reciever
                 }))
             }
@@ -33,5 +31,5 @@ const channelSocket = (socket, io) => {
 // }
 
 module.exports = {
-    channelSocket,
+    tagSocket,
 };
