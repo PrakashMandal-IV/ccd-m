@@ -46,4 +46,5 @@ function emitDirectInboxToUser(Users, inbox, io) {
 }
 module.exports = {
     chatSocket,
+    emitDirectInboxToUser,
 };
