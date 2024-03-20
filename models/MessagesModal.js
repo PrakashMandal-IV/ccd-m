@@ -14,8 +14,7 @@ const MessegesSchema = new mongoose.Schema({
     },
     conversationId: {
         type: Schema.Types.ObjectId,
-        ref: Collections.CONVERSATION_MODEL,
-        required: true
+        ref: Collections.CONVERSATION_MODEL
     },
     seen: {
         type: Boolean,
