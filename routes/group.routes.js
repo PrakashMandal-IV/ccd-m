@@ -10,6 +10,6 @@ router.get("/getGroup",auth, groupController.getGroup)
 router.post("/addMemberinGroup",auth, groupController.addMemberInGroup)
 router.patch("/removeMemberFromGroup",auth, groupController.removeMemberInGroup)
 router.delete("/:id",auth, groupController.deleteGroup)
-
+router.get("/getHistoryofGroup/:groupId",auth, groupController.getGroupChatHistory)
 
 module.exports = router;

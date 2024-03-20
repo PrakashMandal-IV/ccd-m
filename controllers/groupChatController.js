@@ -35,11 +35,9 @@ exports.createGroup = async (req, res) => {
 exports.getGroup = async (req, res) => {
     try {
         const userId = req.userId;
-        console.log("userId: ", userId);
         const payload = await GroupModals.find({ createdBy: GetObjectID(userId) })
             .populate("members", "name refId logo") // Populate the members field with username and email
             .select("groupName members");
-        console.log("payload: ", payload);
         var response = StructureGroupList(payload);
         return res.success("Success", response);
     } catch (error) {
@@ -68,7 +66,6 @@ function StructureGroupList(groups) {
 exports.addMemberInGroup = async (req, res) => {
     try {
         const { groupId, memberId } = req.body;
-        console.log(groupId, memberId);
         const member = await getUserIdByRefId(memberId);
         const group = await GroupModals.findOne({ refId: groupId });
         let groupDetails = group;
@@ -269,7 +266,6 @@ exports.getGroupChatInbox = async (userID) => {
                 const groupDetails = await GroupModals.findById(groupId).select(
                     "groupName logo refId"
                 );
-                console.log(groupDetails);
                 const conversation = await ConversationModal.find({
                     type: "GROUP_CHAT",
                     groupId: groupId,
@@ -327,3 +323,29 @@ exports.getGroupChatInbox = async (userID) => {
 };
 
 
+exports.getGroupChatHistory = async (req, res) => {
+    try {
+      const groupId = req.params.groupId;
+      const group = await GroupModals.findOne({refId: groupId});
+      const conversation = await ConversationModal.findOne({
+        type: "GROUP_CHAT",
+        groupId: group._id, 
+  
+      });
+     
+      const response = [];
+      if (conversation) {
+        const messageList = await MessagesModal.find({
+          conversationId: conversation._id,
+        })
+          .populate("author", "name refId")
+          .exec();
+        messageList.forEach((item) => {
+          response.push(BuildMessegeObject(item));
+        });
+      }
+      return res.success("Success", { data: response });
+    } catch (error) {
+      return res.error("Error occurred while creating user", error.message);
+    }
+  };
