@@ -12,7 +12,7 @@ const channelSocket = (socket, io) => {
             const memberResponse = await getMembersRefIdofChannel(userId, data.channelId)
             if (memberResponse.status) {
                 await Promise.all(memberResponse.data.map(async (member) => {
-                    var response = await addMessageInConversation(userId, member, data, 'CHANNEL_TYPE', memberResponse.channelId) 
+                    var response = await addMessageInConversation(userId, member, data) 
                     emitMessageToUser(response.participents.filter(x => x !== userId), response.data, io)  // send message to the sender and the reciever
                 }))
             }
