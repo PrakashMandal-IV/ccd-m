@@ -18,6 +18,11 @@ exports.createGroup = async (req, res) => {
                 return res.error("Error occurred while creating group", "Group refId is required");
             }
         }
+
+        const group =  await GroupModals.findOne({refId:refId})
+        if(group){
+            return res.error("Error occurred while creating group", "Group with same refId already exists");
+        }
         const payload = new GroupModals({
             groupName: groupName,
             refId: refId,
