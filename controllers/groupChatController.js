@@ -10,7 +10,19 @@ exports.createGroup = async (req, res) => {
     try {
         const { groupName, refId, logo, type } = req.body;
         const userId = req.userId;
+        if (!groupName || !refId) {
+            if (!groupName) {
+                return res.error("Error occurred while creating group", "Group name is required");
+            }
+            if (!refId) {
+                return res.error("Error occurred while creating group", "Group refId is required");
+            }
+        }
 
+        const group =  await GroupModals.findOne({refId:refId})
+        if(group){
+            return res.error("Error occurred while creating group", "Group with same refId already exists");
+        }
         const payload = new GroupModals({
             groupName: groupName,
             refId: refId,
@@ -282,7 +294,7 @@ exports.getGroupChatInbox = async (userID) => {
                         const formattedData = {
                             groupName: groupDetails.groupName,
                             participants: [],
-                            memberCount:groupDetails.members.length,
+                            memberCount: groupDetails.members.length,
                             type: groupDetails.type,
                             logo: groupDetails.logo,
                             refId: groupDetails.refId,
@@ -299,7 +311,7 @@ exports.getGroupChatInbox = async (userID) => {
                     const formattedData = {
                         groupName: groupDetails.groupName,
                         participants: [],
-                        memberCount:groupDetails.members.length,
+                        memberCount: groupDetails.members.length,
                         type: groupDetails.type,
                         logo: groupDetails.logo,
                         refId: groupDetails.refId,
@@ -384,7 +396,7 @@ exports.getGroupMembers = async (req, res) => {
                 }
             }
         ]);
-        
+
         return res.success("Success", { data: members });
     } catch (error) {
         return res.error("Error occurred while creating user", error.message);
