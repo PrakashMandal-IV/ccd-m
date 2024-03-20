@@ -5,7 +5,7 @@ const UserModel = require("../models/UserModel");
 const { GetObjectID } = require("../utils/utilities");
 const { getUserIdByRefId } = require("./userController");
 const _ = require("lodash");
-
+const Collections = require("../utils/Collections");
 exports.createGroup = async (req, res) => {
     try {
         const { groupName, refId, logo, type } = req.body;
@@ -222,7 +222,7 @@ exports.sendGroupMessage = async (userId, data) => {
                 .populate("author", "name refId")
                 .exec();
 
-            var mdata = BuildMessegeObject(message,data.groupId);
+            var mdata = BuildMessegeObject(message, data.groupId);
             return {
                 participents: group.members.map((item) => item.userId._id),
                 data: mdata,
@@ -281,7 +281,7 @@ exports.getGroupChatInbox = async (userID) => {
                     if (lastMessage) {
                         const formattedData = {
                             groupName: groupDetails.groupName,
-                            participants:[],
+                            participants: [],
                             type: groupDetails.type,
                             logo: groupDetails.logo,
                             refId: groupDetails.refId,
@@ -297,7 +297,7 @@ exports.getGroupChatInbox = async (userID) => {
                 } else {
                     const formattedData = {
                         groupName: groupDetails.groupName,
-                        participants:[],
+                        participants: [],
                         type: groupDetails.type,
                         logo: groupDetails.logo,
                         refId: groupDetails.refId,
@@ -325,27 +325,66 @@ exports.getGroupChatInbox = async (userID) => {
 
 exports.getGroupChatHistory = async (req, res) => {
     try {
-      const groupId = req.params.groupId;
-      const group = await GroupModals.findOne({refId: groupId});
-      const conversation = await ConversationModal.findOne({
-        type: "GROUP_CHAT",
-        groupId: group._id, 
-  
-      });
-     
-      const response = [];
-      if (conversation) {
-        const messageList = await MessagesModal.find({
-          conversationId: conversation._id,
-        })
-          .populate("author", "name refId")
-          .exec();
-        messageList.forEach((item) => {
-          response.push(BuildMessegeObject(item));
+        const groupId = req.params.groupId;
+        const group = await GroupModals.findOne({ refId: groupId });
+        const conversation = await ConversationModal.findOne({
+            type: "GROUP_CHAT",
+            groupId: group._id,
+
         });
-      }
-      return res.success("Success", { data: response });
+
+        const response = [];
+        if (conversation) {
+            const messageList = await MessagesModal.find({
+                conversationId: conversation._id,
+            })
+                .populate("author", "name refId")
+                .exec();
+            messageList.forEach((item) => {
+                response.push(BuildMessegeObject(item));
+            });
+        }
+        return res.success("Success", { data: response });
     } catch (error) {
-      return res.error("Error occurred while creating user", error.message);
+        return res.error("Error occurred while creating user", error.message);
     }
-  };
+};
+
+
+exports.getGroupMembers = async (req, res) => {
+    try {
+        const groupId = req.params.groupId;
+        const members = await GroupModals.aggregate([
+            {
+                $match: { refId: groupId } // Filter by the desired group
+            },
+            {
+                $unwind: "$members" // Unwind the members array
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: "members.userId",
+                    foreignField: "_id",
+                    as: "memberInfo"
+                }
+            },
+            {
+                $unwind: "$memberInfo" // Unwind the memberInfo array
+            },
+            {
+                $project: {
+                    refId: "$memberInfo.refId",
+                    name: "$memberInfo.name",
+                    logo: "$memberInfo.logo",
+                    email: "$memberInfo.email",
+                    isAdmin: "$members.isAdmin"
+                }
+            }
+        ]);
+        
+        return res.success("Success", { data: members });
+    } catch (error) {
+        return res.error("Error occurred while creating user", error.message);
+    }
+};
