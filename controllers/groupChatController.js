@@ -264,7 +264,7 @@ exports.getGroupChatInbox = async (userID) => {
         var conversations = await Promise.all(
             members.map(async (groupId) => {
                 const groupDetails = await GroupModals.findById(groupId).select(
-                    "groupName logo refId"
+                    "groupName logo refId members"
                 );
                 const conversation = await ConversationModal.find({
                     type: "GROUP_CHAT",
@@ -282,6 +282,7 @@ exports.getGroupChatInbox = async (userID) => {
                         const formattedData = {
                             groupName: groupDetails.groupName,
                             participants: [],
+                            memberCount:groupDetails.members.length,
                             type: groupDetails.type,
                             logo: groupDetails.logo,
                             refId: groupDetails.refId,
@@ -298,6 +299,7 @@ exports.getGroupChatInbox = async (userID) => {
                     const formattedData = {
                         groupName: groupDetails.groupName,
                         participants: [],
+                        memberCount:groupDetails.members.length,
                         type: groupDetails.type,
                         logo: groupDetails.logo,
                         refId: groupDetails.refId,
