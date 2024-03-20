@@ -9,7 +9,7 @@ const chatSocket = (socket, io) => {
         // });
         socket.on("direct-message", async (data) => {  // recieve a message from user
 
-            var response = await addMessageInConversation(userId, data.reciever, data)
+            var response = await addMessageInConversation(userId, data.reciever, data,'',null)
             if(response){
                 emitMessageToUser(response.participents, response.data, io)  // send message to the sender and the reciever
                 await GetInboxList(response.participents,io)

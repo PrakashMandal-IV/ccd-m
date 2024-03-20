@@ -1,5 +1,6 @@
 const { default: mongoose, Schema } = require("mongoose");
 const Collections = require("../utils/Collections");
+const { ObjectId } = require("mongodb");
 
 
 const MessegesSchema = new mongoose.Schema({
@@ -25,8 +26,8 @@ const MessegesSchema = new mongoose.Schema({
     type: {
         type: String,
         trim: true,
-        default:'TEXT'
-      },
+        default: 'TEXT'
+    },
     seenTime: {
         type: Date,
         trim: true,
@@ -56,9 +57,18 @@ const MessegesSchema = new mongoose.Schema({
             type: String
         }
     }],
-    sendTime:{
-        type:Date,
-        default:Date.now
+    sendTime: {
+        type: Date,
+        default: Date.now
+    },
+    messageTypeName: {
+        type: String,
+        default: '',
+        trim: true
+    },
+    messageTypeID: {
+        type: Schema.Types.ObjectId,
+        default: '',
     }
 })
 MessegesSchema.method = {}

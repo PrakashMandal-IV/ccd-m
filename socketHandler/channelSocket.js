@@ -12,13 +12,13 @@ const channelSocket = (socket, io) => {
             const memberResponse = await getMembersRefIdofChannel(userId, data.channelId)
             if (memberResponse.status) {
                 await Promise.all(memberResponse.data.map(async (member) => {
-                    var response = await addMessageInConversation(userId, member, data)
-                     emitMessageToUser(response.participents.filter(x=>x!==userId), response.data, io)  // send message to the sender and the reciever
+                    var response = await addMessageInConversation(userId, member, data, 'CHANNEL_TYPE', memberResponse.channelId) 
+                    emitMessageToUser(response.participents.filter(x => x !== userId), response.data, io)  // send message to the sender and the reciever
                 }))
             }
 
         });
-        
+
     } catch (error) {
         console.log("Error occurred in socket", error.message);
     }

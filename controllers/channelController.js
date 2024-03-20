@@ -147,7 +147,7 @@ exports.getMembersRefIdofChannel = async (userId, channelId) => {
                 members.push(user.refId)
             }));
 
-           return {status:true,data:members};
+           return {status:true,data:members,channelId:channel._id};
         }
     } catch {
         return { status: false, data: 'something went wrong' }
