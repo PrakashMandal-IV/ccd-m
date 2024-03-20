@@ -1,6 +1,6 @@
 const ChannelModel = require("../models/ChannelModel");
 const UserModel = require("../models/UserModel");
-const { GetObjectID } = require("../utils/utilities");
+const { GetObjectID, BuildMessegeObject } = require("../utils/utilities");
 const MessagesModal = require("../models/MessagesModal");
 exports.createChannel = async (req, res) => {
     try {
@@ -130,7 +130,19 @@ exports.removeMemberInChannel = async (req, res) => {
         return res.error("Error occurred while removing member", error.message);
     }
 }
-
+exports.getChannelMessages = async (req, res) => {
+    try {
+        const channelId = req.params.channelId;
+        const Messages = await MessagesModal.find({messageTypeName:"CHANNEL_TYPE",messageTypeID:GetObjectID(channelId)}).sort({sendTime:'ascending'}).populate('author', 'name refId').exec()
+        var messages = []
+        Messages.forEach(x=>{
+            messages.push(BuildMessegeObject(x))
+        })
+        return res.success("Success", messages);
+    } catch (error) {
+        return res.error("Error occurred while removing member", error.message);
+    }
+}
 
 exports.getMembersRefIdofChannel = async (userId, channelId,data) => {
 
@@ -187,3 +199,6 @@ exports.deleteChannel = async (req, res) => {
         return res.error("Error occurred while deleting channel", error.message);
     }
 }
+
+
+

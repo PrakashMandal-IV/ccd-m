@@ -1,7 +1,7 @@
 const _ = require("lodash");
 const ConversationModal = require("../models/ConversationModal");
 const MessagesModal = require("../models/MessagesModal");
-const { GetObjectID } = require("../utils/utilities");
+const { GetObjectID, BuildMessegeObject } = require("../utils/utilities");
 const { getUserIdByRefId } = require("./userController");
 const Collections = require("../utils/Collections");
 const UserModel = require("../models/UserModel");
@@ -161,18 +161,3 @@ exports.getDirectChatInbox = async (userID) => {
 
 
 
-
-function BuildMessegeObject(Message) {
-  return (
-    {
-      id: Message._id.toString(),
-      message: Message.message,
-      userName: Message.author.name,
-      refId: Message.author.refId,
-      seen: Message.seen,
-      seenTime: Message.seenTime || '',
-      attachments: Message.attachments,
-      sentAt: Message.sendTime
-    }
-  )
-}
