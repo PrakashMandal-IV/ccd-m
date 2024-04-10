@@ -15,7 +15,8 @@ exports.BuildMessegeObject = (Message) => {
             seen: Message.seen,
             seenTime: Message.seenTime || '',
             attachments: Message.attachments,
-            sentAt: Message.sendTime
+            sentAt: Message.sendTime,
+            type:Message.type,
         }
     )
 }
@@ -32,5 +33,6 @@ exports.BuildGroupChatMessegeObject=(Message, groupId) =>{
         seenTime: Message.seenTime || "",
         attachments: Message.attachments,
         sentAt: Message.sendTime,
+        type:Message.type,
     };
 }
