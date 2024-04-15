@@ -34,4 +34,4 @@ const NotificationSchema = new mongoose.Schema({
 NotificationSchema.method = {}
 
 
-module.exports = MessegesModel = mongoose.model(Collections.NOTIFICATION_MODEL, NotificationSchema);
+module.exports = NotificationModal = mongoose.model(Collections.NOTIFICATION_MODEL, NotificationSchema);
