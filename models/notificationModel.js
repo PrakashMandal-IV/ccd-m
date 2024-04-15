@@ -12,6 +12,14 @@ const NotificationSchema = new mongoose.Schema({
         require: true,
         trim: true,
     },
+    notificationType: {
+        type: String,
+        default:''
+    },
+    subType: {
+        type: String,
+        default:''
+    },
     sentBy: {
         type: Schema.ObjectId,
         ref: Collections.USER_MODEL,
