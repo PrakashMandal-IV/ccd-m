@@ -225,7 +225,7 @@ exports.sendGroupMessage = async (userId, data) => {
                 message: data.message,
                 author: GetObjectID(userId),
                 conversationId: ConversationID._id,
-                attachments: [],
+                attachments: data.attachments,
                 type: data.type,
             });
             const messageResponse = await messagePayload.save();

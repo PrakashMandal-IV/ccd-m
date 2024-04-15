@@ -47,7 +47,7 @@ exports.addMessageInConversation = async (userID, recieverRefId, data, type, typ
         message: data.message,
         author: GetObjectID(userID),
         conversationId: ConversationID._id,
-        attachments: [],
+        attachments:data.attachments,
         type: data.type
       })
       const messageResponse = await messagePayload.save()
