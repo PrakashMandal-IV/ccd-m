@@ -5,6 +5,7 @@ const UserChatSocket = require("./socketHandler/UserChatSocket");
 const ChannelSocket = require("./socketHandler/channelSocket");
 const GroupSocket = require("./socketHandler/groupChatSocket");
 const TagSocket = require("./socketHandler/tagSocket");
+const NotificationSocket = require("./socketHandler/notificationSocket");
 
 let io;
 
@@ -44,6 +45,10 @@ const registerSocketServer = (server) => {
         
          //init tag socket
         TagSocket.tagSocket(socket,io)
+
+        //init notification socket
+        NotificationSocket.notificationSocket(socket,io)
+        
         socket.on("disconnect", () => {
             serverStore.removeConnectedUser(socket.id);
         });

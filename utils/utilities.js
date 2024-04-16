@@ -36,3 +36,18 @@ exports.BuildGroupChatMessegeObject=(Message, groupId) =>{
         type:Message.type,
     };
 }
+
+
+exports.BuildNotificationObject=(Notification) =>{
+    return {
+        id: Notification._id.toString(),
+        content: Notification.content,
+        userName: Notification.sentBy.name,
+        userId:  Notification.sentBy.refId,
+        type: Notification.type,
+        notificationType: Notification.notificationType,
+        subType: Notification.subType,
+        sentAt: Notification.sentAt,
+        isSeen:Notification.isSeen,
+    };
+}

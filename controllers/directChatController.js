@@ -47,7 +47,7 @@ exports.addMessageInConversation = async (userID, recieverRefId, data, type, typ
         message: data.message,
         author: GetObjectID(userID),
         conversationId: ConversationID._id,
-        attachments:data.attachments,
+        attachments: data.attachments,
         type: data.type
       })
       const messageResponse = await messagePayload.save()
@@ -129,8 +129,10 @@ exports.getDirectChatInbox = async (userID) => {
             .sort({ sendTime: -1 })
             .populate("author", "name refId logo")
             .exec();
+          var unRead = 0
 
           if (lastMessage) {
+            unRead = await MessagesModal.countDocuments({ conversationId: conversation[0]._id, seen: false,author: { $ne: GetObjectID(userID) } })
             const formattedData = {
               userName: friend.name,
               logo: friend.logo,
@@ -140,7 +142,8 @@ exports.getDirectChatInbox = async (userID) => {
               lastMessage: lastMessage.message,
               lastMessageTime: lastMessage.sendTime,
               seen: lastMessage.seen,
-              sendBylogo: lastMessage.author.logo
+              sendBylogo: lastMessage.author.logo,
+              unRead: unRead
             };
             return formattedData;
           }
@@ -158,6 +161,13 @@ exports.getDirectChatInbox = async (userID) => {
 
 
 
-
+exports.setMessageSeen = async (messageId) => {
+  try{
+    await MessagesModal.findByIdAndUpdate(GetObjectID(messageId),
+    { $set: { seen: true,seenTime:Date.now() } })
+  }catch(error){
+    console.error(error)
+  }
+}
 
 

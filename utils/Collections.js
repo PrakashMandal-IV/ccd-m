@@ -4,3 +4,4 @@ exports.MESSEGES_MODEL = "Messages";
 exports.GROUPS_MODEL = "Groups";
 exports.CHANNELS_MODEL = "Channels";
 exports.TAGS_MODEL = "Tags";
+exports.NOTIFICATION_MODEL = "Notifications";
