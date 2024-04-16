@@ -19,8 +19,8 @@ exports.createGroup = async (req, res) => {
             }
         }
 
-        const group =  await GroupModals.findOne({refId:refId})
-        if(group){
+        const group = await GroupModals.findOne({ refId: refId })
+        if (group) {
             return res.error("Error occurred while creating group", "Group with same refId already exists");
         }
         const payload = new GroupModals({
@@ -234,7 +234,7 @@ exports.sendGroupMessage = async (userId, data) => {
                 .populate("author", "name refId")
                 .exec();
 
-            var mdata = BuildGroupChatMessegeObject(message, data.groupId);
+            var mdata = BuildGroupChatMessegeObject(message, data.groupId,false);
             return {
                 participents: group.members.map((item) => item.userId._id),
                 data: mdata,
@@ -279,6 +279,15 @@ exports.getGroupChatInbox = async (userID) => {
                         .exec();
 
                     if (lastMessage) {
+                        const unReadCount = await MessagesModal.countDocuments({
+                            conversationId: conversation[0]._id,
+                            author: { $ne: GetObjectID(userID) },
+                            seenByGroup: {
+                                $not: {
+                                    $elemMatch: { userId: GetObjectID(userID) }
+                                }
+                            }
+                        });
                         const formattedData = {
                             groupName: groupDetails.groupName,
                             participants: [],
@@ -292,6 +301,7 @@ exports.getGroupChatInbox = async (userID) => {
                             lastMessageTime: lastMessage.sendTime,
                             seen: lastMessage.seen,
                             sendBylogo: lastMessage.author.logo,
+                            unRead: unReadCount
                         };
                         return formattedData;
                     }
@@ -309,6 +319,7 @@ exports.getGroupChatInbox = async (userID) => {
                         lastMessageTime: '',
                         seen: false,
                         sendBylogo: '',
+                        unRead: 0
                     };
                     return formattedData;
                 }
@@ -327,6 +338,7 @@ exports.getGroupChatInbox = async (userID) => {
 
 exports.getGroupChatHistory = async (req, res) => {
     try {
+        const userId = req.userId
         const groupId = req.params.groupId;
         const group = await GroupModals.findOne({ refId: groupId });
         const conversation = await ConversationModal.findOne({
@@ -343,7 +355,8 @@ exports.getGroupChatHistory = async (req, res) => {
                 .populate("author", "name refId")
                 .exec();
             messageList.forEach((item) => {
-                response.push(BuildGroupChatMessegeObject(item));
+                const seen = Array.from(item.seenByGroup).find(x=>x.userId===GetObjectID(userId))
+                response.push(BuildGroupChatMessegeObject(item,groupId,seen));
             });
         }
         return res.success("Success", { data: response });
@@ -390,3 +403,22 @@ exports.getGroupMembers = async (req, res) => {
         return res.error("Error occurred while creating user", error.message);
     }
 };
+
+
+exports.setMessageSeen = async (messageId, userId) => {
+    try {
+       
+        const message = await MessagesModal.findById(GetObjectID(messageId)).exec()
+        var seenByGroup = message.seenByGroup
+        if (!Array.from(seenByGroup).find(x => x.userId === GetObjectID(userId))) {
+            seenByGroup.push({
+                userId: GetObjectID(userId),
+                seenTime: Date.now()
+            })
+        }
+        await message.updateOne({ $set: { seenByGroup: seenByGroup } })
+
+    } catch (error) {
+        console.error(error)
+    }
+}

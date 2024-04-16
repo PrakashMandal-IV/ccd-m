@@ -2,6 +2,7 @@ const {
     getMembersRefIdofGroup,
     sendGroupMessage,
     getGroupChatInbox,
+    setMessageSeen,
 } = require("../controllers/groupChatController");
 const serverStore = require("../serverStore");
 
@@ -19,6 +20,11 @@ const groupSocket = (socket, io) => {
         socket.on("group-inbox", async () => {
             // recieve a message from user
             await getGroupInbox([userId], io)
+        });
+
+        socket.on("group-message-seen", async (messageId) => {  // recieve a message from user
+            await setMessageSeen(messageId,userId)
+            await getGroupInbox([userId],io)
         });
     } catch (error) {
         console.log("Error occurred in socket", error.message);
