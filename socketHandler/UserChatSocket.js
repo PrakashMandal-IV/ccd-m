@@ -1,5 +1,5 @@
 
-const { addMessageInConversation, getDirectChatInbox } = require('../controllers/directChatController');
+const { addMessageInConversation, getDirectChatInbox, setMessageSeen } = require('../controllers/directChatController');
 const serverStore = require('../serverStore')
 const chatSocket = (socket, io) => {
     try {
@@ -20,7 +20,10 @@ const chatSocket = (socket, io) => {
         socket.on("direct-inbox", async () => {  // recieve a message from user
             await GetInboxList([userId],io)
         });
-
+        socket.on("direct-message-seen", async (messageId) => {  // recieve a message from user
+            await setMessageSeen(messageId)
+            await GetInboxList([userId],io)
+        });
     } catch (error) {
         console.log("Error occurred in socket", error.message);
     }
