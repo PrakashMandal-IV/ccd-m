@@ -258,83 +258,93 @@ async function createDirectMessageConversation(groupId) {
 
 exports.getGroupChatInbox = async (userID) => {
     try {
-        const groups = await GroupModals.find({ "members.userId": userID });
-        let members = groups.map((group) => group._id.toString()); // Convert ObjectIds to strings
-
-        var conversations = await Promise.all(
-            members.map(async (groupId) => {
-                const groupDetails = await GroupModals.findById(groupId).select(
-                    "groupName logo refId members"
-                );
-                const conversation = await ConversationModal.find({
-                    type: "GROUP_CHAT",
-                    groupId: groupId,
-                });
-                if (conversation && conversation.length > 0) {
-                    const lastMessage = await MessagesModal.findOne({
-                        conversationId: conversation[0]._id,
-                    })
-                        .sort({ sendTime: -1 })
-                        .populate("author", "name refId logo")
-                        .exec();
-
-                    if (lastMessage) {
-                        const unReadCount = await MessagesModal.countDocuments({
-                            conversationId: conversation[0]._id,
-                            author: { $ne: GetObjectID(userID) },
-                            seenByGroup: {
-                                $not: {
-                                    $elemMatch: { userId: GetObjectID(userID) }
-                                }
-                            }
-                        });
-                        const formattedData = {
-                            groupName: groupDetails.groupName,
-                            participants: [],
-                            memberCount: groupDetails.members.length,
-                            type: groupDetails.type,
-                            logo: groupDetails.logo,
-                            refId: groupDetails.refId,
-                            sendByName: lastMessage.author.name,
-                            sendByrefId: lastMessage.author.refId,
-                            lastMessage: lastMessage.message,
-                            lastMessageTime: lastMessage.sendTime,
-                            seen: lastMessage.seen,
-                            sendBylogo: lastMessage.author.logo,
-                            unRead: unReadCount
-                        };
-                        return formattedData;
-                    }
-                } else {
-                    const formattedData = {
-                        groupName: groupDetails.groupName,
-                        participants: [],
-                        memberCount: groupDetails.members.length,
-                        type: groupDetails.type,
-                        logo: groupDetails.logo,
-                        refId: groupDetails.refId,
-                        sendByName: '',
-                        sendByrefId: '',
-                        lastMessage: '',
-                        lastMessageTime: '',
-                        seen: false,
-                        sendBylogo: '',
-                        unRead: 0
-                    };
-                    return formattedData;
-                }
+      const groups = await GroupModals.find({ "members.userId": userID });
+      let members = groups.map((group) => group._id.toString()); // Convert ObjectIds to strings
+  
+      var conversations = await Promise.all(
+        members.map(async (groupId) => {
+          const groupDetails = await GroupModals.findById(groupId).select(
+            "groupName logo refId members type"
+          );
+          const conversation = await ConversationModal.find({
+            type: "GROUP_CHAT",
+            groupId: groupId,
+          });
+          if (conversation && conversation.length > 0) {
+            const lastMessage = await MessagesModal.findOne({
+              conversationId: conversation[0]._id,
             })
-        );
-
-        conversations = _.map(
-            _.sortBy(conversations, (o) => Date.parse(o.lastMessageTime))
-        );
-        return conversations.reverse();
+              .sort({ sendTime: -1 })
+              .populate("author", "name refId logo")
+              .exec();
+  
+            if (lastMessage) {
+             
+              const unReadCount = await MessagesModal.countDocuments({
+                conversationId: conversation[0]._id,
+                author: { $ne: GetObjectID(userID) },
+                seenByGroup: {
+                  $not: {
+                    $elemMatch: { userId: GetObjectID(userID) },
+                  },
+                },
+              });
+            
+              const userId = GetObjectID(userID).toString(); 
+             
+              const seen = Array.from(lastMessage.seenByGroup).find(
+                (x) => x.userId.toString() === userId
+              )
+                ? true
+                : false;
+  
+              
+              const formattedData = {
+                groupName: groupDetails.groupName,
+                participants: [],
+                memberCount: groupDetails.members.length,
+                type: groupDetails.type,
+                logo: groupDetails.logo,
+                refId: groupDetails.refId,
+                sendByName: lastMessage.author.name,
+                sendByrefId: lastMessage.author.refId,
+                lastMessage: lastMessage.message,
+                lastMessageTime: lastMessage.sendTime,
+                seen: seen,
+                sendBylogo: lastMessage.author.logo,
+                unRead: unReadCount,
+              };
+              return formattedData;
+            }
+          } else {
+            const formattedData = {
+              groupName: groupDetails.groupName,
+              participants: [],
+              memberCount: groupDetails.members.length,
+              type: groupDetails.type,
+              logo: groupDetails.logo,
+              refId: groupDetails.refId,
+              sendByName: "",
+              sendByrefId: "",
+              lastMessage: "",
+              lastMessageTime: "",
+              seen: false,
+              sendBylogo: "",
+              unRead: 0,
+            };
+            return formattedData;
+          }
+        })
+      );
+  
+      conversations = _.map(
+        _.sortBy(conversations, (o) => Date.parse(o.lastMessageTime))
+      );
+      return conversations.reverse();
     } catch (error) {
-        console.log(error);
+      console.log(error);
     }
-};
-
+  };
 
 exports.getGroupChatHistory = async (req, res) => {
     try {
