@@ -22,14 +22,14 @@ exports.BuildMessegeObject = (Message) => {
 }
 
 
-exports.BuildGroupChatMessegeObject=(Message, groupId,seen) =>{
+exports.BuildGroupChatMessegeObject=(Message, groupId) =>{
     return {
         id: Message._id.toString(),
         message: Message.message,
         groupId: groupId,
         userName: Message.author.name,
-        refId: Message.author.refId,
-        seen: seen,
+        userId: Message.author.refId,
+        seen: Message.seen,
         seenTime: Message.seenTime || "",
         attachments: Message.attachments,
         sentAt: Message.sendTime,

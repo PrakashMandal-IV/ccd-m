@@ -25,7 +25,12 @@ const GroupSchema = new mongoose.Schema({
             isAdmin: {
                 type: Boolean,
                 default: false
-            }
+            },
+            fcm_token: {
+                type: String,
+                ref: Collections.PUSHNOTIFICATION_MODEL,
+                require: true
+            },
         },
     ],
     createdAt: {
