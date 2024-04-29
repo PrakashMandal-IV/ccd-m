@@ -8,20 +8,18 @@ const UserModel = require("../models/UserModel");
 exports.recievefcmToken = async (req, res) => {
   try {
     const userId = req.userId;
-    console.log("userid", userId);
     const fcm_token = req.body.value;
-    console.log("fcmtoke", fcm_token);
+   
 
     // Check if the FCM token already exists for the user
     const existingToken = await pushNotification.findOne({ userId: userId });
-    console.log("existingtoken", existingToken);
+   
 
     if (existingToken) {
       // If FCM token already exists, update it
-      console.log("existingToken", existingToken);
       existingToken.fcm_token = fcm_token;
       await existingToken.save();
-      console.log("FCM token updated successfully");
+     
     } else {
       // If FCM token doesn't exist, create a new entry
       const notify = new pushNotification({
@@ -29,7 +27,6 @@ exports.recievefcmToken = async (req, res) => {
         userId: userId,
       });
       await notify.save();
-      console.log("New FCM token saved successfully");
     }
 
     return res.success("Success", true);
@@ -69,7 +66,7 @@ exports.sendPushNotification = async (data) => {
               var fcm = new FCM(value.SERVER_KEY);
               let refID = parseData?.userId || parseData?.refId;
               const user = await UserModel.findOne({ refId: refID });
-              console.log("user", user);
+              
 
               await sendPushNotificationToGroup(parseData, user, fcm);
 
@@ -129,38 +126,40 @@ async function sendPushNotificationToGroup(parseData, user, fcm) {
   const otherMembers = groupMembers.filter(
     (member) => member.userId.toString() !== user._id.toString()
   );
-
-  var reg_ids = [];
-  otherMembers.forEach((token) => {
-    reg_ids.push(token.fcm_token);
-  });
-
-  if (reg_ids.length > 0) {
-    var pushMessage = {
-      //this may vary according to the message type (single recipient, multicast, topic, et cetera)
-
-      registration_ids: reg_ids,
-      content_available: true,
-      mutable_content: true,
-      notification: {
-        title: group.groupName,
-        body: parseData.message,
-        icon: "myicon",
-        sound: "mySound",
-      },
-      // data: {
-      //   notification_type: 5,
-      //   conversation_id:inputs.user_id,
-      // }
-    };
-    fcm.send(pushMessage, function (err, response) {
-      if (err) {
-        console.log("Something has gone wrong!", err);
-      } else {
-        console.log("Push notification sent.", response);
-      }
+  if (otherMembers) {
+    var reg_ids = [];
+    otherMembers.forEach((token) => {
+      reg_ids.push(token.fcm_token);
     });
+
+    if (reg_ids.length > 0) {
+      var pushMessage = {
+        //this may vary according to the message type (single recipient, multicast, topic, et cetera)
+
+        registration_ids: reg_ids,
+        content_available: true,
+        mutable_content: true,
+        notification: {
+          title: group.groupName,
+          body: parseData.message,
+          icon: "myicon",
+          sound: "mySound",
+        },
+        // data: {
+        //   notification_type: 5,
+        //   conversation_id:inputs.user_id,
+        // }
+      };
+      fcm.send(pushMessage, function (err, response) {
+        if (err) {
+          console.log("Something has gone wrong!", err);
+        } else {
+          console.log("Push notification sent.", response);
+        }
+      });
+    }
   }
+
 }
 
 async function sendPushNotificationToPerson(parseData, user, fcm) {
@@ -171,37 +170,35 @@ async function sendPushNotificationToPerson(parseData, user, fcm) {
   const othermember = await pushNotification.findOne({
     userId: user.friends.toString(),
   });
-  console.log("othermemberperson", parseData);
+  if (othermember) {
+    var reg_ids = [];
 
-  var reg_ids = [];
+    reg_ids.push(othermember.fcm_token);
 
-  reg_ids.push(othermember.fcm_token);
+    var pushMessage = {
+      //this may vary according to the message type (single recipient, multicast, topic, et cetera)
 
-  var pushMessage = {
-    //this may vary according to the message type (single recipient, multicast, topic, et cetera)
+      registration_ids: reg_ids,
+      content_available: true,
+      mutable_content: true,
+      notification: {
+        title: user.name,
+        body: parseData.message,
+        icon: "myicon",
+        sound: "mySound",
+      },
+      // data: {
+      //   notification_type: 5,
+      //   conversation_id:inputs.user_id,
+      // }
+    };
 
-    registration_ids: reg_ids,
-    content_available: true,
-    mutable_content: true,
-    notification: {
-      title: user.name,
-      body: parseData.message,
-      icon: "myicon",
-      sound: "mySound",
-    },
-    // data: {
-    //   notification_type: 5,
-    //   conversation_id:inputs.user_id,
-    // }
-  };
-
-  console.log("persons message");
-
-  fcm.send(pushMessage, function (err, response) {
-    if (err) {
-      console.log("Something has gone wrong!", err);
-    } else {
-      console.log("Push notification sent.", response);
-    }
-  });
+    fcm.send(pushMessage, function (err, response) {
+      if (err) {
+        console.log("Something has gone wrong!", err);
+      } else {
+        console.log("Push notification sent.", response);
+      }
+    });
+  }
 }
